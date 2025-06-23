@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% import "macros/forms.html" as forms %}
+
+{% block content %}
+<h2>Edit Event</h2>
+<form method="POST">
+    {{ forms.event_form(event=event, include_image=False) }}
+    <button type="submit" class="btn btn-primary">Update</button>
+</form>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js"></script>
+<script>
+    new EasyMDE({ element: document.getElementById("description") });
+</script>
+{% endblock %}

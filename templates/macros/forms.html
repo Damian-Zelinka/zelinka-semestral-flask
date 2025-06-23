@@ -1,0 +1,33 @@
+{% macro event_form(event=None, include_image=True) %}
+    <div class="mb-3">
+        <label for="title" class="form-label">Title</label>
+        <input type="text" class="form-control" id="title" name="title" value="{{ event.title if event else '' }}" required>
+    </div>
+
+    <div class="mb-3">
+        <label for="description" class="form-label">Description</label>
+        <textarea class="form-control" id="description" name="description" rows="6">{{ event.description if event else '' }}</textarea>
+    </div>
+
+    <div class="mb-3">
+        <label for="date" class="form-label">Date</label>
+        <input type="date" class="form-control" id="date" name="date" value="{{ event.date if event else '' }}" required>
+    </div>
+
+    <div class="mb-3">
+        <label for="location" class="form-label">Location</label>
+        <input type="text" class="form-control" id="location" name="location" value="{{ event.location if event else '' }}" required>
+    </div>
+
+    <div class="mb-3">
+        <label for="required_volunteers" class="form-label">Required Volunteers</label>
+        <input type="number" class="form-control" id="required_volunteers" name="required_volunteers" value="{{ event.required_volunteers if event else '' }}" required>
+    </div>
+
+    {% if include_image %}
+    <div class="mb-3">
+        <label for="image" class="form-label">Event Image</label>
+        <input type="file" class="form-control" id="image" name="image" required>
+    </div>
+    {% endif %}
+{% endmacro %}

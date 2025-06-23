@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}{{ event.title }} - Volunteer Events{% endblock %}
+
+{% block content %}
+<h2>{{ event.title }}</h2>
+
+<p><strong>Date:</strong> {{ event.date.strftime('%Y-%m-%d') }}</p>
+<p><strong>Location:</strong> {{ event.location }}</p>
+
+{% if event.image_filename %}
+  <img src="{{ url_for('static', filename='uploads/' ~ event.image_filename) }}" alt="{{ event.title }}" style="max-width: 400px; height: auto;">
+{% endif %}
+
+<p>{{ event.description | safe }}</p>
+
+{% if current_user.is_authenticated and current_user.role and current_user.role.name == 'administrator' %}
+  <a href="{{ url_for('events.edit_event', event_id=event.id) }}" class="btn btn-primary mt-3">Edit Event</a>
+{% endif %}
+<a href="{{ url_for('index') }}" class="btn btn-secondary mt-3">Back to Events</a>
+
+{% if current_user.is_authenticated and current_user.role and current_user.role.name in ['administrator', 'moderator'] %}
+  <h3>Registrations</h3>
+  <ul>
+      <li>{{ vol.volunteer.full_name }} - {{ vol.contact_info }} - Registered at {{ vol.registration_date.strftime('%Y-%m-%d') }}</li>
+    {% else %}
+      <li>No volunteers yet.</li>
+    {% endfor %}
+  </ul>
+
+  <h3>Pending Volunteers</h3>
+  <ul>
+    {% for vol in pending_volunteers %}
+      <li>
+        {{ vol.volunteer.full_name }} - {{ vol.contact_info }} - Registered at {{ vol.registration_date.strftime('%Y-%m-%d') }}
+        <form method="POST" action="{{ url_for('events.moderate_registration', registration_id=vol.id, action='accept') }}" style="display:inline;">
+          <button type="submit" class="btn btn-success btn-sm">Accept</button>
+        </form>
+        <form method="POST" action="{{ url_for('events.moderate_registration', registration_id=vol.id, action='reject') }}" style="display:inline;">
+          <button type="submit" class="btn btn-danger btn-sm">Reject</button>
+        </form>
+      </li>
+    {% else %}
+      <li>No pending volunteers.</li>
+    {% endfor %}
+  </ul>
+{% endif %}
+
+{# For regular users: show their own registration status or register button #}
+{% if current_user.is_authenticated and current_user.role and current_user.role.name == 'user' %}
+  <h3>Your Registration</h3>
+  {% if user_registration %}
+    <p>Status: <strong>{{ user_registration.status }}</strong> (registered on {{ user_registration.registration_date.strftime('%Y-%m-%d') }})</p>
+    <p>Contact info: {{ user_registration.contact_info }}</p>
+{% elif accepted_count >= event.required_volunteers %}
+  <p class="text-danger"><strong>Registration closed:</strong> This event has reached the required number of volunteers.</p>
+{% else %}
+  <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#registerModal">Register for this Event</button>
+
+    <!-- Modal -->
+    <div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <form method="POST" action="{{ url_for('events.register_for_event', event_id=event.id) }}">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="registerModalLabel">Register for {{ event.title }}</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <label for="contact_info">Contact Information</label>
+              <input type="text" class="form-control" id="contact_info" name="contact_info" required>
+            </div>
+            <div class="modal-footer">
+              <button type="submit" class="btn btn-primary">Submit Application</button>
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  {% endif %}
+{% endif %}
+
+{% endblock %}

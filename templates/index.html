@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Volunteer Events{% endblock %}
+
+{% block content %}
+<h1>Welcome to the Volunteer Events Platform</h1>
+<p>Explore and register for upcoming events.</p>
+
+{% if event_data %}
+  <ul class="list-group">
+    {% for item in event_data %}
+      {% set event = item.event %}
+      <li class="list-group-item">
+        <h3>{{ event.title }}</h3>
+        <p><strong>Date:</strong> {{ event.date.strftime('%Y-%m-%d') }}</p>
+        <p><strong>Location:</strong> {{ event.location }}</p>
+        <p><strong>Organizer:</strong> {{ event.organizer.full_name }}</p>
+        <p>{{ event.description | striptags | truncate(150, True, '...') }}</p>
+        <p><strong>Volunteers:</strong> {{ item.accepted_count }} / {{ event.required_volunteers }}</p>
+
+        {% if item.accepted_count >= event.required_volunteers %}
+          <span class="badge bg-danger mb-3">Регистрация закрыта</span>
+        {% else %}
+          <span class="badge bg-success mb-3">Идёт набор волонтёров</span>
+        {% endif %}
+
+        <br>
+        <a href="{{ url_for('events.view_event', event_id=event.id) }}" class="btn btn-success btn-sm">View Details</a>
+        {% if current_user.is_authenticated %}
+          {% if current_user.role.name in ['administrator', 'moderator'] %}
+            <a href="{{ url_for('events.edit_event', event_id=event.id) }}" class="btn btn-warning btn-sm">Edit Event</a>
+          {% endif %}
+          {% if current_user.role.name == 'administrator' %}
+            <!-- Trigger delete modal -->
+            <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal{{ event.id }}">
+              Delete Event
+            </button>
+
+            <!-- Delete confirmation modal -->
+            <div class="modal fade" id="deleteModal{{ event.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ event.id }}" aria-hidden="true">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <form method="POST" action="{{ url_for('events.delete_event', event_id=event.id) }}">
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="deleteModalLabel{{ event.id }}">Удаление мероприятия</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+                    </div>
+                    <div class="modal-body">
+                      Вы уверены, что хотите удалить мероприятие «{{ event.title }}»?
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Нет</button>
+                      <button type="submit" class="btn btn-danger">Да</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          {% endif %}
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+  {% if current_user.is_authenticated and current_user.role.name == 'administrator' %}
+    <div class="mt-4">
+      <a href="{{ url_for('events.create_event') }}" class="btn btn-primary">Create New Event</a>
+    </div>
+  {% endif %}
+
+  {# Pagination controls #}
+  <nav aria-label="Page navigation">
+    <ul class="pagination mt-3">
+      {% if pagination.has_prev %}
+        <li class="page-item">
+          <a class="page-link" href="{{ url_for('index', page=pagination.prev_num) }}">Previous</a>
+        </li>
+      {% else %}
+        <li class="page-item disabled"><span class="page-link">Previous</span></li>
+      {% endif %}
+
+      {% for page_num in pagination.iter_pages(left_edge=2, right_edge=2, left_current=2, right_current=2) %}
+        {% if page_num %}
+          {% if page_num == pagination.page %}
+            <li class="page-item active"><span class="page-link">{{ page_num }}</span></li>
+          {% else %}
+            <li class="page-item"><a class="page-link" href="{{ url_for('index', page=page_num) }}">{{ page_num }}</a></li>
+          {% endif %}
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">…</span></li>
+        {% endif %}
+      {% endfor %}
+
+      {% if pagination.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="{{ url_for('index', page=pagination.next_num) }}">Next</a>
+        </li>
+      {% else %}
+        <li class="page-item disabled"><span class="page-link">Next</span></li>
+      {% endif %}
+    </ul>
+  </nav>
+
+{% else %}
+  <p>No upcoming events right now.</p>
+{% endif %}
+
+{% endblock %}
