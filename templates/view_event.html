@@ -22,6 +22,7 @@
 {% if current_user.is_authenticated and current_user.role and current_user.role.name in ['administrator', 'moderator'] %}
   <h3>Registrations</h3>
   <ul>
+    {% for vol in accepted_volunteers %}
       <li>{{ vol.volunteer.full_name }} - {{ vol.contact_info }} - Registered at {{ vol.registration_date.strftime('%Y-%m-%d') }}</li>
     {% else %}
       <li>No volunteers yet.</li>
